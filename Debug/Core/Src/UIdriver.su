@@ -1,0 +1,5 @@
+../Core/Src/UIdriver.c:81:6:nextPage	16	static
+../Core/Src/UIdriver.c:109:6:moveCursor	16	static
+../Core/Src/UIdriver.c:132:6:selectPage	16	static
+../Core/Src/UIdriver.c:152:6:unselectPage	16	static
+../Core/Src/UIdriver.c:170:6:markButton	24	static
