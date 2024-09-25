@@ -1,9 +1,3 @@
-/*
- * UIdriver.h
- *
- *  Created on: Sep 18, 2024
- *      Author: siemens
- */
 #include "main.h"
 
 struct clickableObject{
@@ -30,6 +24,3 @@ void unselectPage();
 void moveCursor();
 void markButton();
 void showTime();
-void markSet();
-void unmarkSet();
-void pressButton();

@@ -1,2 +1,2 @@
-../Core/Src/display.c:19:6:displayTime	32	static
-../Core/Src/display.c:67:6:checkTime	64	static
+../Core/Src/display.c:80:6:checkTime	8	static
+../Core/Src/display.c:85:6:displayTime	80	static
