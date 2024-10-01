@@ -19,10 +19,11 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-//#include "stm32f0xx_it.h"
+#include "stm32f0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "UIdriver.h"
+#include "eventRoutine.h"
 //#include "UIdriver.c"
 //#include "display.h"
 /* USER CODE END Includes */
@@ -60,14 +61,20 @@ unsigned int adcConverted=64;
 /* External variables --------------------------------------------------------*/
 extern ADC_HandleTypeDef hadc;
 extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim14;
+extern TIM_HandleTypeDef htim16;
 /* USER CODE BEGIN EV */
+
+extern RTC_HandleTypeDef hrtc;
 extern int nextOrPrev;
 extern int menuTriggered;
 extern int allowNextPage;
+extern int allowNextSubPage;
+extern int canChooseButton;
 extern struct uiPage * currentPage;
+extern struct uiSubPage * currentSubPage;
 extern struct uiPage page1, page2, page3;
-extern RTC_HandleTypeDef hrtc;
-
+extern struct uiSubPage calibTime;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -160,33 +167,29 @@ void EXTI4_15_IRQHandler(void)
   /* USER CODE END EXTI4_15_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
   /* USER CODE BEGIN EXTI4_15_IRQn 1 */
-
 	HAL_NVIC_DisableIRQ(EXTI4_15_IRQn); //FOR BUTTON DEBOUNCE
 
 	HAL_TIM_Base_Start_IT(&htim7);		//STARTING 5 SECS CONTDOWN
-
 	htim7.Instance->CNT=0;				//NULLIFY THE COUNTER
-
 	HAL_ResumeTick();					//WAKE THE CPU UP
-	for(int i=0; i<100000; i++){};
+	if (allowNextSubPage==1){
 
+	}
 	HAL_ADC_Start_IT(&hadc);			//STARTING ADC CONVERSIONS WITH IT
+	if (allowNextSubPage==1){
 
+	}
 	nextOrPrev=CURRENT;					//STARTING PAGE IS CURRENT
 	nextPage();
 
-	if((currentPage->numberOfPage)==0)	//DISPLAY TIME AT THE BOTTOM OF THE SCREEN
-	 {checkTime();
-	 ssd1306_SetCursor(0, 55);
-	 displayTime();}
-
 	ssd1306_SetDisplayOn(1);			//DISPLAY SET ON
+	//allowNextSubPage=0;
+
 	pressButton();
 	selectPage();						//SELECT THE CURRENT PAGE
 
 
 	for(int i=0; i<350000; i++){};	//BUTTON DEBOUNCE DELAY
-
 	HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);	//DEBOUNCE DISABLED
   /* USER CODE END EXTI4_15_IRQn 1 */
 }
@@ -206,35 +209,36 @@ void ADC1_IRQHandler(void)
 	  adcConverted=HAL_ADC_GetValue(&hadc);
 	  HAL_ADC_Stop_IT(&hadc);
 
-if(adcConverted>23){
+	  if(adcConverted>13){}
 
-}
-
-	  else if (adcConverted<3){			//BUTTON 3	(BACK)
+	  else if (adcConverted<2){			//BUTTON 3	(BACK)3
 		htim7.Instance->CNT=0;
-		htim7.Instance->ARR=25000;
+		htim7.Instance->ARR=65000;
+		nextPage();
+		canChooseButton=0;
 		unselectPage();
+		unselectSubPage();
 	  }
-	  else if (adcConverted<12){		//BUTTON 2	(RIGHT/DOWN)
-		nextOrPrev=NEXT;
+	  else if (adcConverted<7){		//BUTTON 2	(RIGHT/DOWN) 12
+		nextOrPrev=PREV;
 		nextPage();
 		moveCursor();
-
+		moveSPCursor();
 		htim7.Instance->CNT=0;
-		htim7.Instance->ARR=25000;
+		htim7.Instance->ARR=65000;
 	  }
 	  else {							//BUTTON 1	(LEFT/UP)[if (adcConverted<24||adcConverted>11)]
-		nextOrPrev=PREV;
+		nextOrPrev=NEXT;
 		moveCursor();
 		nextPage();
-
+		moveSPCursor();
 		htim7.Instance->CNT=0;
-		htim7.Instance->ARR=25000;
+		htim7.Instance->ARR=65000;
 	  }
 for(int i=0; i<350000; i++){};
 
 
-	  HAL_ADC_Start_IT(&hadc);
+		HAL_ADC_Start_IT(&hadc);
 
 	 //checkTime();
 	 //ssd1306_SetCursor(2, 52);
@@ -259,22 +263,52 @@ void TIM7_IRQHandler(void)
 
 		htim7.Instance->ARR=5000;
 		htim7.Instance->CNT=0;
+
+		nextOrPrev=CURRENT;
+		allowNextPage=1;
+		page1.selected=0;
+		page2.selected=0;
+		page3.selected=0;
 		currentPage= &page1;
-		//nextOrPrev=CURRENT;
-	//	menuTriggered = 0;
-		//allowNextPage=0;
 		currentPage->buttonMenu[0].selected=0;
 		currentPage->buttonMenu[1].selected=0;
 		currentPage->buttonMenu[2].selected=0;
 		currentPage->currentButton=0;
-		//page1.selected=1;
-		//page2.selected=0;
-		//page3.selected=0;
+		currentSubPage->selected=0;
+		HAL_GPIO_WritePin(GPIOA, SYN115_DATA_Pin , GPIO_PIN_RESET);
 		ssd1306_FillRectangle(0, 10, 5, 54, 0x00);
 
 		HAL_SuspendTick();
    // HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
   /* USER CODE END TIM7_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM14 global interrupt.
+  */
+void TIM14_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM14_IRQn 0 */
+
+  /* USER CODE END TIM14_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim14);
+  /* USER CODE BEGIN TIM14_IRQn 1 */
+
+  /* USER CODE END TIM14_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM16 global interrupt.
+  */
+void TIM16_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM16_IRQn 0 */
+
+  /* USER CODE END TIM16_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim16);
+  /* USER CODE BEGIN TIM16_IRQn 1 */
+
+  /* USER CODE END TIM16_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

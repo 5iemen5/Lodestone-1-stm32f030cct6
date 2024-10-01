@@ -34,7 +34,7 @@ Core/Src/display.o: ../Core/Src/display.c ../Core/Inc/display.h \
  ../Drivers/STM32F0xx_HAL_Driver/Inc/stm32f0xx_hal_tim.h \
  ../Drivers/STM32F0xx_HAL_Driver/Inc/stm32f0xx_hal_tim_ex.h \
  ../Core/Inc/ssd1306_fonts.h ../Core/Inc/main.h ../Core/Inc/ssd1306.h \
- ../Core/Inc/display.h
+ ../Core/Inc/display.h ../Core/Inc/UIdriver.h ../Core/Inc/main.h
 ../Core/Inc/display.h:
 ../Core/Inc/ssd1306.h:
 ../Core/Inc/ssd1306_conf.h:
@@ -75,3 +75,5 @@ Core/Src/display.o: ../Core/Src/display.c ../Core/Inc/display.h \
 ../Core/Inc/main.h:
 ../Core/Inc/ssd1306.h:
 ../Core/Inc/display.h:
+../Core/Inc/UIdriver.h:
+../Core/Inc/main.h:

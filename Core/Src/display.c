@@ -7,6 +7,7 @@
 #include "display.h"
 #include "ssd1306.h"
 #include "main.h"
+#include "UIdriver.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -20,6 +21,7 @@ int symbolVerticalShift = 8;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern RTC_HandleTypeDef hrtc;
+extern struct uiSubPage calibTime;
 
 RTC_DateTypeDef dateBuffer;
 RTC_TimeTypeDef timeBuffer;
@@ -80,6 +82,13 @@ RTC_TimeTypeDef timeBuffer;
 void checkTime(){
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+	calibTime.buttonMenu[0].value = sTime.Hours;
+	calibTime.buttonMenu[1].value = sTime.Minutes;
+	calibTime.buttonMenu[2].value = sTime.Seconds;
+	calibTime.buttonMenu[3].value = sDate.WeekDay;
+	calibTime.buttonMenu[4].value = sDate.Date;
+	calibTime.buttonMenu[5].value = sDate.Month;
+	calibTime.buttonMenu[6].value = sDate.Year;
 }
 
 void displayTime() {
@@ -87,19 +96,19 @@ void displayTime() {
 		char * wd;
 	    // Format: YYYY-MM-DD WD HH:MM:SS
 		switch (sDate.WeekDay){
-		case 1: 	wd="Su";
+		case 1: 	wd="Mo";
 					break;
-		case 2:  	wd="Mo";
+		case 2:  	wd="Tu";
 					break;
-		case 3:  	wd="Tu";
+		case 3:  	wd="We";
 					break;
-		case 4:  	wd="We";
+		case 4:  	wd="Th";
 					break;
-		case 5:  	wd="Th";
+		case 5:  	wd="Fr";
 					break;
-		case 6:  	wd="Fr";
+		case 6:  	wd="Sa";
 					break;
-		case 7:  	wd="Sa";
+		case 7:  	wd="Su";
 					break;
 		}
 
@@ -110,9 +119,8 @@ void displayTime() {
 				sTime.Minutes,
 				sTime.Seconds,
 				wd,
-				sDate.WeekDay,
-				sDate.Month,
 				sDate.Date,
+				sDate.Month,
 				sDate.Year
 );
 		ssd1306_WriteString(timeString, Font_6x8, White);
@@ -230,4 +238,35 @@ void checkTime2(){
 	  chUniYears=drCheckUY + '0';
 	}
 */
+
+adjustTime(){
+	if((calibTime.currentButton==0)||(calibTime.currentButton==1))			//IF SECONDS OR MINUTES (1-59)
+	{
+
+	}
+	if(calibTime.currentButton==2)											//IF HOURS (1-23)
+	{
+
+	}
+	if(calibTime.currentButton==3)											//IF WEEKDAY (1-7)
+	{
+
+	}
+	if(calibTime.currentButton==4)											//IF DAY (1-7)
+	{
+
+	}
+	if(calibTime.currentButton==5)											//IF MONTH (1-12)
+	{
+
+	}
+	if(calibTime.currentButton==6)											//IF YEAR (1-99)
+	{
+
+	}
+}
+
+
+
+
 

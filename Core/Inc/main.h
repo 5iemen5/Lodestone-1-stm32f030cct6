@@ -84,6 +84,7 @@ void Error_Handler(void);
 #define SETORRESET		0
 #define SINGLEPRESS		1
 #define	SUBMENU			2
+#define ROLLER			3
 
 /* USER CODE END Private defines */
 
