@@ -410,7 +410,6 @@ void pressButton(){
 				(currentPage->buttonMenu[currentPage->currentButton].buttonType == SUBMENU))	//AND IF IT'S SUBMENU
 		{
 			currentSubPage->selected=0;
-			//allowNextSubPage=0;
 			event();
 			currentPage->buttonMenu[currentPage->currentButton].selected=1;
 			currentPage->selected=1;

@@ -176,9 +176,7 @@ void EXTI4_15_IRQHandler(void)
 
 	}
 	HAL_ADC_Start_IT(&hadc);			//STARTING ADC CONVERSIONS WITH IT
-	if (allowNextSubPage==1){
 
-	}
 	nextOrPrev=CURRENT;					//STARTING PAGE IS CURRENT
 	nextPage();
 
@@ -223,7 +221,7 @@ void ADC1_IRQHandler(void)
 		nextOrPrev=PREV;
 		nextPage();
 		moveCursor();
-		moveSPCursor();
+		//moveSPCursor();
 		htim7.Instance->CNT=0;
 		htim7.Instance->ARR=65000;
 	  }
@@ -231,7 +229,7 @@ void ADC1_IRQHandler(void)
 		nextOrPrev=NEXT;
 		moveCursor();
 		nextPage();
-		moveSPCursor();
+		//moveSPCursor();
 		htim7.Instance->CNT=0;
 		htim7.Instance->ARR=65000;
 	  }
