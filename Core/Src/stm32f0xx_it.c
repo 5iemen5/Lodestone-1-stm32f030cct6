@@ -75,6 +75,12 @@ extern struct uiPage * currentPage;
 extern struct uiSubPage * currentSubPage;
 extern struct uiPage page1, page2, page3;
 extern struct uiSubPage calibTime;
+extern int allowCalibTime;
+extern int allowCursorCalibTime;
+extern int allowSelectCalibTime;
+extern int allowSelectSPButton;
+extern int allowMove;
+extern int allowAdjust;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -172,9 +178,7 @@ void EXTI4_15_IRQHandler(void)
 	HAL_TIM_Base_Start_IT(&htim7);		//STARTING 5 SECS CONTDOWN
 	htim7.Instance->CNT=0;				//NULLIFY THE COUNTER
 	HAL_ResumeTick();					//WAKE THE CPU UP
-	if (allowNextSubPage==1){
 
-	}
 	HAL_ADC_Start_IT(&hadc);			//STARTING ADC CONVERSIONS WITH IT
 
 	nextOrPrev=CURRENT;					//STARTING PAGE IS CURRENT
@@ -200,7 +204,7 @@ void ADC1_IRQHandler(void)
   /* USER CODE BEGIN ADC1_IRQn 0 */
 
   /* USER CODE END ADC1_IRQn 0 */
-  HAL_ADC_IRQHandler(&hadc);
+	HAL_ADC_IRQHandler(&hadc);
   /* USER CODE BEGIN ADC1_IRQn 1 */
   	  adcConverted=63;
 	  HAL_ADC_PollForConversion(&hadc, 50);
@@ -211,27 +215,39 @@ void ADC1_IRQHandler(void)
 
 	  else if (adcConverted<2){			//BUTTON 3	(BACK)3
 		htim7.Instance->CNT=0;
-		htim7.Instance->ARR=65000;
+		htim7.Instance->ARR=20000;
 		nextPage();
 		canChooseButton=0;
 		unselectPage();
 		unselectSubPage();
+		allowCalibTime=0;
+		allowSelectCalibTime=0;
+		allowCursorCalibTime=0;
+		allowSelectSPButton=0;
+		allowAdjust=0;
+		allowMove=1;
 	  }
 	  else if (adcConverted<7){		//BUTTON 2	(RIGHT/DOWN) 12
 		nextOrPrev=PREV;
 		nextPage();
 		moveCursor();
-		//moveSPCursor();
+
+		moveSPCursor();
+		adjustTime();
+
 		htim7.Instance->CNT=0;
-		htim7.Instance->ARR=65000;
+		htim7.Instance->ARR=20000;
 	  }
 	  else {							//BUTTON 1	(LEFT/UP)[if (adcConverted<24||adcConverted>11)]
 		nextOrPrev=NEXT;
 		moveCursor();
 		nextPage();
-		//moveSPCursor();
+
+		moveSPCursor();
+		adjustTime();
+
 		htim7.Instance->CNT=0;
-		htim7.Instance->ARR=65000;
+		htim7.Instance->ARR=20000;
 	  }
 for(int i=0; i<350000; i++){};
 
@@ -273,6 +289,12 @@ void TIM7_IRQHandler(void)
 		currentPage->buttonMenu[2].selected=0;
 		currentPage->currentButton=0;
 		currentSubPage->selected=0;
+		allowCalibTime=0;
+		allowSelectCalibTime=0;
+		allowCursorCalibTime=0;
+		allowSelectSPButton=0;
+		allowMove=1;
+		allowAdjust=0;
 		HAL_GPIO_WritePin(GPIOA, SYN115_DATA_Pin , GPIO_PIN_RESET);
 		ssd1306_FillRectangle(0, 10, 5, 54, 0x00);
 

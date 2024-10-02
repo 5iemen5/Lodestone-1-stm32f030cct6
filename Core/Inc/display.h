@@ -10,5 +10,6 @@
 
 void displayTime();
 void checkTime();
+void adjustTime();
 
 #endif /* INC_DISPLAY_H_ */

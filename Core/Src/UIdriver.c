@@ -12,6 +12,10 @@
 extern int symbolHorizontalShift;
 extern int symbolVerticalShift;
 extern TIM_HandleTypeDef htim7;
+extern int allowCalibTime;
+extern int allowSelectCalibTime;
+extern int allowCursorCalibTime;
+extern int allowMove;
 
 int allowNextPage=1, allowNextSubPage=0, nextOrPrev=1, menuTriggered,canChooseButton=0;
 
@@ -182,7 +186,7 @@ void nextSubPage(){
 
 			ssd1306_WriteString(currentSubPage->nameOfPage, Font_6x8, White);		//Paste name of page
 
-			ssd1306_SetCursor(1*symbolHorizontalShift, 1+2*symbolVerticalShift);
+			ssd1306_SetCursor(1*symbolHorizontalShift, 1+2*symbolVerticalShift);	//DISPLAY TIME FOR ADJUSTING
 			displayTime();
 
 			ssd1306_UpdateScreen();
@@ -213,7 +217,7 @@ if (currentPage->selected==1&&currentSubPage->selected==0){
 }
 
 void moveSPCursor(){
-if ((currentSubPage->selected==1)&&(allowNextSubPage==0)){
+if ((currentSubPage->selected==1)&&(allowCursorCalibTime==1)&&(allowMove==1)){
 		ssd1306_Line(			currentSubPage->cursorAxis[currentPage->currentButton][0]-1, //CLEAR ALL SubPage CURSORS
 								currentSubPage->cursorAxis[currentSubPage->currentButton][1]+9,
 								currentSubPage->cursorAxis[currentSubPage->currentButton][0]+127,
@@ -241,7 +245,9 @@ if ((currentSubPage->selected==1)&&(allowNextSubPage==0)){
 }
 
 void selectPage(){
-	if(currentSubPage->selected==0){
+	if(		(currentSubPage->selected==1)||(allowCalibTime==1)||
+			(allowSelectCalibTime==1)||(allowCursorCalibTime==1)||(currentPage->selected==1)){}
+	else{
 		ssd1306_DrawRectangle(0, 0, 127, 9, 0x01);
 
 		ssd1306_FillRectangle(0, 10, 5, 54, 0x00);				//CLEAR BUTTON MARKERS
@@ -340,7 +346,7 @@ void unselectSubPage(){
 	currentSubPage->selected=0;
 	//allowNextSubPage=1;
 	nextOrPrev=CURRENT;
-	nextPage();
+	//nextPage();
 	ssd1306_UpdateScreen();
 }
 
@@ -377,16 +383,25 @@ void unmarkSet(){
 }
 
 void markSetSPButton(){
-	ssd1306_DrawRectangle(	currentPage->cursorAxis[currentSubPage->currentButton][0]-1,
-							currentPage->cursorAxis[currentPage->currentButton][1]-1,
-							currentPage->cursorAxis[currentPage->currentButton][0]+7,
-							currentPage->cursorAxis[currentPage->currentButton][1]+9,
+	ssd1306_DrawRectangle(	currentSubPage->cursorAxis[currentSubPage->currentButton][0]-2,
+							currentSubPage->cursorAxis[currentSubPage->currentButton][1]-3,
+							currentSubPage->cursorAxis[currentSubPage->currentButton][0]+10,
+							currentSubPage->cursorAxis[currentSubPage->currentButton][1]+8,
 							0x01);
 	ssd1306_UpdateScreen();
 }
 
+void unmarkSetSPButton(){
+	ssd1306_DrawRectangle(	currentSubPage->cursorAxis[currentSubPage->currentButton][0]-2,
+							currentSubPage->cursorAxis[currentSubPage->currentButton][1]-3,
+							currentSubPage->cursorAxis[currentSubPage->currentButton][0]+10,
+							currentSubPage->cursorAxis[currentSubPage->currentButton][1]+8,
+							0x00);
+	ssd1306_UpdateScreen();
+}
+
 void pressButton(){
-	if (currentPage->selected==1){
+	//if (currentPage->selected==1){
 		////////////////////////// SETORRESET  /////////////////////////
 		if (	(currentPage->buttonMenu[currentPage->currentButton].selected==1)&&				//CHECKIN IF BUTTON IS SELECTED
 				(currentPage->buttonMenu[currentPage->currentButton].buttonType == SETORRESET))	//CHECKING BUTTON TYPE
@@ -406,15 +421,21 @@ void pressButton(){
 					event();
 		}
 		///////////////////////// SUBMENU /////////////////////////////////
-		else if ((	currentPage->buttonMenu[currentPage->currentButton].selected==1)&&			//CHECKIN IF BUTTON IS SELECTED
-				(currentPage->buttonMenu[currentPage->currentButton].buttonType == SUBMENU))	//AND IF IT'S SUBMENU
+		else if (currentPage->buttonMenu[currentPage->currentButton].buttonType == SUBMENU)	//AND IF IT'S SUBMENU
 		{
-			currentSubPage->selected=0;
+/*			currentSubPage->selected=0;
 			event();
 			currentPage->buttonMenu[currentPage->currentButton].selected=1;
-			currentPage->selected=1;
+			currentPage->selected=1;*/
+			if((currentPage->numberOfPage==2)&&(currentPage->currentButton==0)){
+				if(currentPage->selected==1)
+				{
+				allowCalibTime=1;
+				}
+				event();
+			}
 		}
-	}
+	//}
 }
 
 void pageCalibTime(){

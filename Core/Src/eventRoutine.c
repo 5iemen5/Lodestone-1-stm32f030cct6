@@ -13,11 +13,19 @@ extern int menuTriggered;
 extern int allowNextPage;
 extern int allowNextSubPage;
 extern int canChooseButton;
+extern int nextOrPrev;
 extern struct uiPage * currentPage;
 extern struct uiSubPage * currentSubPage;
 extern struct uiPage page1, page2, page3;
 extern struct uiSubPage calibTime;
 extern TIM_HandleTypeDef htim14;
+
+int 	allowCalibTime=0,
+		allowSelectCalibTime=0,
+		allowCursorCalibTime=0,
+		allowSelectSPButton=0,
+		allowMove=1,
+		allowAdjust=0;
 
 char * buf32="01010101010101010101010101010101";
 char * buf64="1001100110011001100110011001100110011001100110011001100110011001";
@@ -60,7 +68,7 @@ if (currentPage->selected==1){
 
 	case 2:{							//PAGE3
 
-		if(canChooseButton==1){											//ADJUST TIME SECTIONS
+/*		if(canChooseButton==1){											//ADJUST TIME SECTIONS
 			switch(calibTime.currentButton){
 			case 0:
 				markSetSPButton();
@@ -91,28 +99,52 @@ if (currentPage->selected==1){
 				adjustTime();
 				break;
 			}
+		}*/
+
+/*		if(allowAdjust==1)				//ADJUST FUNCTION
+		{
+			allowSelectSPButton=0;
+			//adjustTime();
+		}*/
+
+		if(allowSelectSPButton==1)		//MARK THE BUTTON TO ADJUST
+		{
+			markSetSPButton();
+			allowMove=0;
+			allowCursorCalibTime=0;
+			allowAdjust=1;
 		}
 
-		if((currentSubPage->selected==1)){								//NAVIGATE THE BUTTONS
+		if(allowCursorCalibTime==1)
+		{								//
 			nextOrPrev=CURRENT;
-			moveSPCursor();
-			canChooseButton =1;
+			allowMove=1;
+			moveSPCursor();				//CURSOR APPEARS AND CAN BE MOVED
+			allowSelectSPButton=1;
+			allowSelectCalibTime=0;
 		}
 
-		if(allowNextSubPage==1){	//SELECT THE SUBPAGE
-			unselectPage();
-			allowNextPage=0;
+		if((allowSelectCalibTime==1))
+		{								//SELECT THE SUBPAGE
+			allowCalibTime=0;
+			nextSubPage();
+			allowNextSubPage=0;
 			selectSubPage();
+			if(currentSubPage->selected==1)
+			{
+				allowCursorCalibTime=1;
+			}
 		}
 
-		//allowNextSubPage=1;
-
-		if ((currentSubPage->selected==0)){				//ENTER THE SUBPAGE
+		if (
+			(allowCalibTime==1))			//ENTER THE SUBPAGE
+		{
 			unselectPage();
 			allowNextPage=0;
 			allowNextSubPage=1;
 			nextSubPage();
-			currentSubPage->selected=1;
+			allowSelectCalibTime=1;
+
 		}
 		else {
 

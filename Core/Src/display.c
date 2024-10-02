@@ -11,73 +11,24 @@
 #include <stdio.h>
 #include <string.h>
 
-/*int 	trCheckUS, trCheckTS, 				trCheckUM, trCheckTM, 						trCheckUH, trCheckTH;
-int 	drCheckTY, drCheckUY,				drCheckTM, drCheckUM, drCheckWD,			drCheckTD, drCheckUD;
-char 	chUniSeconds='0', chTenSeconds='0',	chUniMinutes='0', 	chTenMinutes='0', 			chUniHours='0', chTenHours='0';
-char	chTenYears='0', chUniYears='0',		chTenMonths='0', 	chUniMonths='0',chWD='0',		chTenDays='0', chUniDays='0';*/
 int symbolHorizontalShift=6;
 int symbolVerticalShift = 8;
+int adjustLimit=7;
 
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern RTC_HandleTypeDef hrtc;
 extern struct uiSubPage calibTime;
+extern int nextOrPrev;
+extern int allowAdjust;
 
-RTC_DateTypeDef dateBuffer;
-RTC_TimeTypeDef timeBuffer;
-
-
-/*void displayTime2(){
-	char timeString[21];
-	switch (chWD){
-	case 49: 	timeString[9]= 'M';
-				timeString[10]='o';
-				break;
-	case 50: 	timeString[9]= 'T';
-				timeString[10]='u';
-				break;
-	case 51: 	timeString[9]= 'W';
-				timeString[10]='e';
-				break;
-	case 52: 	timeString[9]= 'T';
-				timeString[10]='h';
-				break;
-	case 53: 	timeString[9]= 'F';
-				timeString[10]='r';
-				break;
-	case 54: 	timeString[9]= 'S';
-				timeString[10]='a';
-				break;
-	case 55: 	timeString[9]= 'S';
-				timeString[10]='u';
-				break;
-	}
-	timeString[0]=		chTenHours;
-	timeString[1]=		chUniHours;
-	timeString[2]=		':';
-	timeString[3]=		chTenMinutes;
-	timeString[4]=		chUniMinutes;
-	timeString[5]=		':';
-	timeString[6]=		chTenSeconds;
-	timeString[7]=		chUniSeconds;
-	timeString[8]= 		' ';
-	//timeString[9]= 	' ';
-	//timeString[10]= 	' ';
-	timeString[11]= 	' ';
-	timeString[12]=		chTenDays;
-	timeString[13]=	 	chUniDays;
-	timeString[14]=	 	'/';
-	timeString[15]=	 	chTenMonths;
-	timeString[16]=	 	chUniMonths;
-	timeString[17]=	 	'/';
-	timeString[18]=	 	chTenYears;
-	timeString[19]=	 	chUniYears;
-	timeString[20]=	 	'\0';
-
-
-	ssd1306_WriteString(timeString, Font_6x8, White);
-	ssd1306_UpdateScreen();
-}*/
+RTC_DateTypeDef dateBuffer={
+		0,0,0,0
+};
+RTC_TimeTypeDef timeBuffer={
+		0, 0, 0,
+		0, 0, 0, 0, 0,
+};
 
 void checkTime(){
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
@@ -127,6 +78,104 @@ void displayTime() {
 		ssd1306_UpdateScreen();
 	}
 
+void adjustTime()
+{
+	if(allowAdjust==1){
+		checkTime();
+		timeBuffer=sTime;
+		dateBuffer=sDate;
+
+		if(calibTime.currentButton==0)											//IF HOURS (1-23)
+		{
+			adjustLimit=23;
+		}
+		if(calibTime.currentButton==1)											//IF MINUTES (1-59)
+		{
+			adjustLimit=59;
+		}
+		if(calibTime.currentButton==2)											//IF SECONDS (1-59)
+		{
+			adjustLimit=59;
+		}
+		if(calibTime.currentButton==3)											//IF WEEKDAY (1-7)
+		{
+			adjustLimit=7;
+		}
+		if(calibTime.currentButton==4)											//IF DAY (1-30)
+		{
+			adjustLimit=30;
+		}
+		if(calibTime.currentButton==5)											//IF MONTH (1-12)
+		{
+			adjustLimit=12;
+		}
+		if(calibTime.currentButton==6)											//IF YEAR (1-99)
+		{
+			adjustLimit=99;
+		}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+
+		if (nextOrPrev==NEXT)													//INCREMENT
+		{
+			if(	(int)((calibTime.buttonMenu[calibTime.currentButton].value)+1)	>=	adjustLimit	)
+			{}
+			else
+			{
+			calibTime.buttonMenu[calibTime.currentButton].value++;
+			}
+		}
+
+		else if (nextOrPrev==PREV)												//DECREMENT
+		{
+			if(	(int)((calibTime.buttonMenu[calibTime.currentButton].value)-1)	<=1	)
+			{}
+			else
+			{
+				calibTime.buttonMenu[calibTime.currentButton].value--;
+			}
+		}
+
+		switch(calibTime.currentButton){													//ASSIGNING THE time/date STRUCTURE
+			case 0:																			//VALUES OF SET:
+				timeBuffer.Hours=	calibTime.buttonMenu[calibTime.currentButton].value;	//HOURS
+				break;
+			case 1:
+				timeBuffer.Minutes=calibTime.buttonMenu[calibTime.currentButton].value;	//MINUTES
+				break;
+			case 2:
+				timeBuffer.Seconds=calibTime.buttonMenu[calibTime.currentButton].value;	//SECONDS
+				break;
+			case 3:
+				dateBuffer.WeekDay=calibTime.buttonMenu[calibTime.currentButton].value;	//WEEKDAY
+				break;
+			case 4:
+				dateBuffer.Date=calibTime.buttonMenu[calibTime.currentButton].value;		//DAY
+				break;
+			case 5:
+				dateBuffer.Month=calibTime.buttonMenu[calibTime.currentButton].value;		//MONTH
+				break;
+			case 6:
+				dateBuffer.Year=calibTime.buttonMenu[calibTime.currentButton].value;		//YEAR
+				break;
+		}
+
+		HAL_RTC_SetDate(&hrtc, &dateBuffer, RTC_FORMAT_BIN);
+		HAL_RTC_SetTime(&hrtc, &timeBuffer, RTC_FORMAT_BIN);
+		checkTime();
+		ssd1306_SetCursor(1*symbolHorizontalShift, 1+2*symbolVerticalShift);
+		displayTime();
+	}
+}
+
+
+
+
+
+/*int 	trCheckUS, trCheckTS, 				trCheckUM, trCheckTM, 						trCheckUH, trCheckTH;
+int 	drCheckTY, drCheckUY,				drCheckTM, drCheckUM, drCheckWD,			drCheckTD, drCheckUD;
+char 	chUniSeconds='0', chTenSeconds='0',	chUniMinutes='0', 	chTenMinutes='0', 			chUniHours='0', chTenHours='0';
+char	chTenYears='0', chUniYears='0',		chTenMonths='0', 	chUniMonths='0',chWD='0',		chTenDays='0', chUniDays='0';*/
 
 /*
 void checkTime2(){
@@ -238,35 +287,3 @@ void checkTime2(){
 	  chUniYears=drCheckUY + '0';
 	}
 */
-
-adjustTime(){
-	if((calibTime.currentButton==0)||(calibTime.currentButton==1))			//IF SECONDS OR MINUTES (1-59)
-	{
-
-	}
-	if(calibTime.currentButton==2)											//IF HOURS (1-23)
-	{
-
-	}
-	if(calibTime.currentButton==3)											//IF WEEKDAY (1-7)
-	{
-
-	}
-	if(calibTime.currentButton==4)											//IF DAY (1-7)
-	{
-
-	}
-	if(calibTime.currentButton==5)											//IF MONTH (1-12)
-	{
-
-	}
-	if(calibTime.currentButton==6)											//IF YEAR (1-99)
-	{
-
-	}
-}
-
-
-
-
-

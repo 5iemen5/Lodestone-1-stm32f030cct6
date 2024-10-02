@@ -1,3 +1,3 @@
-../Core/Src/display.c:82:6:checkTime	8	static
-../Core/Src/display.c:94:6:displayTime	80	static
-../Core/Src/display.c:242:1:adjustTime	8	static
+../Core/Src/display.c:33:6:checkTime	8	static
+../Core/Src/display.c:45:6:displayTime	80	static
+../Core/Src/display.c:81:6:adjustTime	16	static

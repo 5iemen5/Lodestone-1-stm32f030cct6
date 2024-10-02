@@ -48,5 +48,7 @@ void markSubPageButton();
 void showTime();
 void markSet();
 void unmarkSet();
+void markSetSPButton();
+void unmarkSetSPButton();
 void pressButton();
 void pageCalibTime();
